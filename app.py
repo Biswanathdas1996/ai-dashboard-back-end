@@ -6,6 +6,7 @@ import movingAvarage
 import deepLearning
 import simpleExtrapolation
 import timeSeriesAnalysis
+import NLQ_SQL
 
 from flask import Flask, request, jsonify, Response, send_file
 
@@ -25,6 +26,16 @@ def add_cors_headers(response):
 @app.route('/api', methods=['GET'])
 def default_app():
     return 'app is running successfully'
+
+
+@app.route('/ask-question', methods=['POST'])
+def nlq_app():
+    requestData = request.json
+    dbUri = requestData.get('dbUri')
+    question = requestData.get('question')
+
+    result = NLQ_SQL.searchInDB(dbUri, question)
+    return jsonify(result)
 
 
 @app.route('/api/prediction', methods=['POST'])
