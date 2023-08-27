@@ -28,13 +28,31 @@ def default_app():
     return 'app is running successfully'
 
 
+@app.route('/connect', methods=['POST'])
+def get_all_tables():
+    requestData = request.json
+    dbUri = requestData.get('dbUri')
+    result = NLQ_SQL.getAllTables(dbUri)
+    return jsonify(result)
+
+
+@app.route('/get-table-data', methods=['POST'])
+def fetchAllDataFromTable():
+    requestData = request.json
+    dbUri = requestData.get('dbUri')
+    table = requestData.get('table')
+    result = NLQ_SQL.fetchAllDataFromTable(dbUri, table)
+    return result
+
+
 @app.route('/ask-question', methods=['POST'])
 def nlq_app():
     requestData = request.json
+    config = requestData.get('config')
     dbUri = requestData.get('dbUri')
     question = requestData.get('question')
 
-    result = NLQ_SQL.searchInDB(dbUri, question)
+    result = NLQ_SQL.searchInDB(config, dbUri, question)
     return jsonify(result)
 
 

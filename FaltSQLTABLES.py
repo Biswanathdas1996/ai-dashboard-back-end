@@ -1,24 +1,30 @@
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 
 # Database connection
 # Replace with your database URI
 DATABASE_URI = "postgresql://Biswanathdas:Papun$1996@post-db-ai.postgres.database.azure.com/azure-sales-data"
 engine = create_engine(DATABASE_URI)
 
-# Fetch all table names
-table_names = engine.table_names()
+inspector = inspect(engine)
+table_names = inspector.get_table_names()
 
-# Join all tables
-if table_names:
-    first_table = table_names[0]
-    df = pd.read_sql(f"SELECT * FROM {first_table}", engine)
 
-    for table in table_names[1:]:
-        temp_df = pd.read_sql(f"SELECT * FROM {table}", engine)
-        # Replace 'common_column' with the column you want to join on
-        df = pd.merge(df, temp_df, how='outer',
-                      left_on='common_column', right_on='common_column')
+print(table_names)
 
-# Save to CSV
-df.to_csv("output.csv", index=False)
+dfs = [pd.read_sql(f"SELECT * FROM {table}", engine) for table in table_names]
+df = pd.concat(dfs, ignore_index=True)
+
+for table in table_names[1:]:
+    temp_df = pd.read_sql(f"SELECT * FROM {table}", engine)
+
+    # Convert columns to the same data type
+    common_columns = df.columns.intersection(temp_df.columns).tolist()
+    for col in common_columns:
+        if df[col].dtype != temp_df[col].dtype:
+            df[col] = df[col].astype(str)
+            temp_df[col] = temp_df[col].astype(str)
+
+    df = pd.merge(df, temp_df, how='outer', on=common_columns)
+
+df.to_csv("concatenated_output.csv", index=False)
