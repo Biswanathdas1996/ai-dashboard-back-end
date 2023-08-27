@@ -36,7 +36,9 @@ def connect(dbUri):
 
 
 def getAllTables(dbUri):
+    # postgresql://Biswanathdas:Papun$1996@post-db-ai.postgres.database.azure.com/azure-sales-data
     engine = create_engine(dbUri)
+    print("========================>", dbUri)
     inspector = inspect(engine)
     table_names = inspector.get_table_names()
     print(table_names)
