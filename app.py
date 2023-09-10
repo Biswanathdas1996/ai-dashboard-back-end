@@ -1,12 +1,11 @@
-import os
 import logging
 import linierRegration
 import polynomialRegression
 import movingAvarage
-import deepLearning
 import simpleExtrapolation
 import timeSeriesAnalysis
 import NLQ_SQL
+import PDF_CHAT
 
 from flask import Flask, request, jsonify, Response, send_file
 
@@ -73,9 +72,6 @@ def return_linier_regration():
     elif (type == "movingAvarage"):
         result = movingAvarage.generate_sales_chart(input_data, x, y)
         return jsonify(result)
-    elif (type == "deepLearning"):
-        result = deepLearning.generate_sales_chart(input_data, x, y)
-        return jsonify(result)
     elif (type == "simpleExtrapolation"):
         result = simpleExtrapolation.generate_sales_chart(input_data, x, y)
         return jsonify(result)
@@ -84,6 +80,35 @@ def return_linier_regration():
         return jsonify(result)
     else:
         return 'No type specified'
+
+
+@app.route('/upload-file', methods=['POST'])
+def upload():
+    if 'pdf_docs' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    pdf_docs = request.files.getlist('pdf_docs')
+    if not pdf_docs:
+        return jsonify({"error": "No selected file"}), 400
+    pdf_docs = request.files.getlist('pdf_docs')
+    PDF_CHAT.upload(pdf_docs)
+    return jsonify({"message": "PDFs processed successfully"})
+
+
+@app.route('/upload-text', methods=['POST'])
+def uploadText():
+
+    text_data = request.json.get('text_data')
+    # config = request.json.get('config')
+    PDF_CHAT.uploadText(text_data)
+    return jsonify({"message": "PDFs processed successfully"})
+
+
+@app.route('/process', methods=['POST'])
+def proces():
+    user_question = request.json.get('user_question')
+    config = request.json.get('config')
+    messages = PDF_CHAT.process(user_question, config)
+    return jsonify(messages)
 
 
 if __name__ == '__main__':
